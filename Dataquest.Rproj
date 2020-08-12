@@ -1,0 +1,113 @@
+
+#Part 1: import the data and check what kind of data do we actually have on hand?
+
+
+library(readr)
+covid_df <- read_csv("covid19.csv")
+View(covid_df)
+
+
+#part 2: How much data is there?
+
+library(tibble)
+dim(covid_df)
+
+#part 3: to get the names of the columns 
+
+vector_cols <- colnames(covid_df)
+view(vector_cols)
+
+#part 4: to view and summarize the content in order to check if we have some inconsistencies
+
+glimpse(vector_cols)
+head(covid_df)
+
+
+#part 5: filter the data to keep only the data related to "All States"
+
+
+library(tidyverse)
+covid_df_all_states <- filter(covid_df, Province_State == "All States" )
+
+#part 6: we work mainly with daily data. So let's extract the columns related to the daily measures
+
+covid_df_all_states_daily <- select(covid_df_all_states, Date, Country_Region, active, hospitalizedCurr, daily_tested, daily_positive)
+
+#part 7: The first question hides the notions of group (by country) and data aggregation (summing daily information).
+
+
+covid_df_all_states_daily_sum <- covid_df_all_states_daily %>%
+  group_by(Country_Region)%>%
+  summarise( tested = sum(daily_tested), positive = sum(daily_positive), active = sum(active), hospitalized = sum(hospitalizedCurr))%>%
+  arrange(desc(tested))
+
+
+covid_df_all_states_daily_sum                      
+
+#part 8: top 10
+
+covid_top_10 <- head(covid_df_all_states_daily_sum, 10)
+
+#part 9:Creating vectors from our dataframe
+
+countries <- c(covid_top_10$Country_Region)
+tested_cases <- c(covid_top_10$tested)
+positive_cases <- c(covid_top_10$positive)
+active_cases <- c(covid_top_10$active)
+hospitalized_cases <- c(covid_top_10$hospitalized)
+
+
+names(positive_cases) <- countries
+names(tested_cases) <- countries
+names(active_cases) <- countries
+names(hospitalized_cases) <- countries
+
+positive_cases/ tested_cases
+
+positive_tested_top_3 <- c("United Kingdom" = 0.11, "United States" = 0.10, "Turkey" = 0.08)
+
+#Keeping relevant information
+
+
+united_kingdom <- c(0.11, 1473672, 166909, 0, 0)
+united_states <- c(0.10, 17282363, 1877179, 0, 0)
+turkey <- c(0.08, 2031192, 163941, 2980960, 0)
+
+#Creating a matrix containing the vectors created above
+
+
+covid_mat <- rbind(united_kingdom,united_states,turkey)
+
+
+#Renaming the matrix columns
+
+
+colnames(covid_mat) <- c("Ratio", "tested", "positive", "active", "hospitalized")
+covid_mat
+
+
+
+
+#Putting all together 
+
+#Creating and asigning our question and answer variable
+
+question <- "Which countries have had the highest number of positive cases against the number of tests?"
+answer <- c("Positive tested cases" = positive_tested_top_3)
+
+
+
+
+dataframes_list <- list(complete = covid_df, all_states = covid_df_all_states, daily = covid_df_all_states_daily,top_10 = covid_top_10)
+matrices_list <- list(covid_mat)
+vectors_list <- list(vector_cols, countries)
+data_structure_list <- list("dataframe" = dataframes_list, "matrix" = matrices_list, "vector" = vectors_list)
+covid_analysis_list <- list(question, answer, data_structure_list)
+covid_analysis_list[2]
+
+
+
+
+
+
+
